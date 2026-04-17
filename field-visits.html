@@ -9,13 +9,125 @@
     <title>Field Visits - Placement Monitor Dashboard</title>
     <link rel="stylesheet" href="styles.css?v=402">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* ── Multi-entry sub-rows ── */
+        .dept-rows-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dept-entry-row {
+            display: grid;
+            grid-template-columns: 1fr 90px 1fr auto;
+            gap: 8px;
+            align-items: end;
+            background: rgba(99, 102, 241, 0.06);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .dept-entry-row .form-group {
+            margin-bottom: 0;
+        }
+
+        .dept-entry-row .form-label {
+            font-size: 11px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .dept-entry-row .form-input {
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+
+        .btn-remove-dept {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+            align-self: flex-end;
+        }
+
+        .btn-remove-dept:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-add-dept {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #818cf8;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px dashed rgba(99, 102, 241, 0.4);
+            border-radius: 7px;
+            padding: 7px 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: fit-content;
+            margin-top: 4px;
+        }
+
+        .btn-add-dept:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .dept-section-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #818cf8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Table: multi-value cells */
+        .multi-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .multi-chip {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(99, 102, 241, 0.13);
+            border-radius: 5px;
+            padding: 2px 7px;
+            font-size: 11px;
+            white-space: nowrap;
+            gap: 4px;
+        }
+
+        .multi-chip-sep {
+            height: 1px;
+            background: rgba(255,255,255,0.07);
+            margin: 1px 0;
+        }
+    </style>
 </head>
 
 <body>
     <!-- TOP NAVIGATION BAR -->
     <nav class="topbar">
         <div class="topbar-inner">
-                        <a href="https://rru.ac.in" target="_blank" class="topbar-brand">
+            <a href="https://rru.ac.in" target="_blank" class="topbar-brand">
                 <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Rashtriya_Raksha_University_logo.png" alt="RRU Logo" class="topbar-logo">
                 <div class="topbar-brand-text">
                     <span class="topbar-brand-name">Rashtriya Raksha University</span>
@@ -36,9 +148,9 @@
             <div class="topbar-right">
                 <a href="mailto:pulse-r24@rru.ac.in" class="topbar-icon-btn" title="Contact Us"><i class="bi bi-chat-left-text"></i></a>
                 <div class="topbar-user">
-                    <div class="topbar-avatar">A</div>
+                    <div class="topbar-avatar">C</div>
                     <div class="topbar-user-info">
-                        <div class="topbar-user-name">Arsh.G</div>
+                        <div class="topbar-user-name">Campus Director PY</div>
                         <div class="topbar-user-role">Admin</div>
                     </div>
                 </div>
@@ -49,103 +161,89 @@
     <!-- Main Content -->
     <div class="dashboard-layout-container">
 
-            <!-- TOP HEADER ROW -->
-            <div class="top-header-row">
+        <!-- TOP HEADER ROW -->
+        <div class="top-header-row">
+            <div>
+                <h1>Field Visits List</h1>
+            </div>
+            <div class="header-actions-unified">
+                <input type="text" id="fieldSearchUnified" class="search-bar-unified" placeholder="Search field visits...">
+                <button class="select-unified" onclick="document.getElementById('importFieldVisitModal').style.display='flex'" style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-file-earmark-excel"></i> Import
+                </button>
+                <button class="select-unified" onclick="exportData('field_visits')" style="width: auto; padding: 10px 15px;">
+                    <i class="bi bi-download"></i> Export
+                </button>
+                <button class="select-unified" id="addStudentBtn" style="width: auto; padding: 10px 15px; background: var(--accent-blue);">
+                    + Add Field Visit
+                </button>
+            </div>
+        </div>
+
+        <div class="widget-panel">
+            <div class="table-container data-table-container">
+                <table class="premium-table">
+                    <thead>
+                        <tr>
+                            <th>SR. NO</th>
+                            <th class="no-wrap">ORGANIZATION VISITED</th>
+                            <th class="no-wrap">VISIT DATE</th>
+                            <th>STUDENTS</th>
+                            <th>PROGRAM</th>
+                            <th>STAFF COUNT</th>
+                            <th>LEAD STAFF</th>
+                            <th class="no-wrap">TYPE</th>
+                            <th class="no-wrap">CITY</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="10" style="text-align:center;padding:40px;opacity:0.5;">Loading field visits...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION CONTROLS -->
+            <div class="pagination-controls" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
+                <div class="pagination-info" style="font-size: 13px; opacity: 0.6;">
+                    Showing <span id="startIndex">0</span> - <span id="endIndex">0</span> of <span id="totalItems">0</span> field visits
+                </div>
+                <div class="pagination-btns" style="display: flex; gap: 10px;">
+                    <button id="prevPage" class="select-unified" style="padding: 5px 15px; width: auto;"><i class="bi bi-chevron-left"></i> Prev</button>
+                    <span id="currentPageIndicator" style="display: flex; align-items: center; font-size: 13px; font-weight: 600; min-width: 60px; justify-content: center;">Page 1</span>
+                    <button id="nextPage" class="select-unified" style="padding: 5px 15px; width: auto;">Next <i class="bi bi-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="app-footer" style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
                 <div>
-                    <h1>Field Visits List</h1>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus, Pondicherry Institute of Hotel Management &amp; Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar, Murungapakkam, Puducherry – 605004</p>
                 </div>
-                <div class="header-actions-unified">
-                    <input type="text" id="fieldSearchUnified" class="search-bar-unified"
-                        placeholder="Search field visits...">
-                    <button class="select-unified"
-                        onclick="document.getElementById('importFieldVisitModal').style.display='flex'"
-                        style="width: auto; padding: 10px 15px;">
-                        <i class="bi bi-file-earmark-excel"></i> Import
-                    </button>
-                    <button class="select-unified" onclick="exportData('field_visits')"
-                        style="width: auto; padding: 10px 15px;">
-                        <i class="bi bi-download"></i> Export
-                    </button>
-                    <button class="select-unified" id="addStudentBtn"
-                        style="width: auto; padding: 10px 15px; background: var(--accent-blue);">
-                        + Add Field Visit
-                    </button>
+                <div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
+                    <p style="font-size: 12px; color: var(--text-muted);">Email: pulse-r24@rru.ac.in</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
+                </div>
+                <div>
+                    <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#" style="color: inherit; text-decoration: none;">Instagram</a></p>
+                    <p style="font-size: 12px; color: var(--text-muted);"><a href="#" style="color: inherit; text-decoration: none;">LinkedIn</a></p>
                 </div>
             </div>
+        </footer>
 
-            <div class="widget-panel">
-                <div class="table-container data-table-container">
-                    <table class="premium-table">
-                        <thead>
-                            <tr>
-                                <th>SR. NO</th>
-                                <th class="no-wrap">ORGANIZATION VISITED</th>
-                                <th class="no-wrap">VISIT DATE</th>
-                                <th>STUDENTS</th>
-                                <th>PROGRAM</th>
-                                <th>STAFF COUNT</th>
-                                <th>LEAD STAFF</th>
-                                <th class="no-wrap">TYPE</th>
-                                <th class="no-wrap">CITY</th>
-                                <th>ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <tr>
-                                <td colspan="9" style="text-align:center;padding:40px;opacity:0.5;">Loading field
-                                    visits...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+    </div>
 
-                <!-- PAGINATION CONTROLS -->
-                <div class="pagination-controls"
-                    style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 10px;">
-                    <div class="pagination-info" style="font-size: 13px; opacity: 0.6;">
-                        Showing <span id="startIndex">0</span> - <span id="endIndex">0</span> of <span
-                            id="totalItems">0</span> field visits
-                    </div>
-                    <div class="pagination-btns" style="display: flex; gap: 10px;">
-                        <button id="prevPage" class="select-unified" style="padding: 5px 15px; width: auto;"><i
-                                class="bi bi-chevron-left"></i> Prev</button>
-                        <span id="currentPageIndicator"
-                            style="display: flex; align-items: center; font-size: 13px; font-weight: 600; min-width: 60px; justify-content: center;">Page
-                            1</span>
-                        <button id="nextPage" class="select-unified" style="padding: 5px 15px; width: auto;">Next <i
-                                class="bi bi-chevron-right"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="app-footer"
-                style="padding: 40px 0; border-top: 1px solid var(--border); margin-top: 30px;">
-                <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px;">
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Rashtriya Raksha University</h3>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.8;">Puducherry Campus, Pondicherry
-                            Institute of Hotel Management & Catering Technology [PIHMCT]<br>Opp To Mahalakshmi Nagar,
-                            Murungapakkam, Puducherry – 605004</p>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Contact</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);">Email: pulse-r24@rru.ac.in</p>
-                        <p style="font-size: 12px; color: var(--text-muted);">Phone: +91 79 XXXXXXXX</p>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--navy); font-size: 14px; margin-bottom: 15px;">Follow</h3>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                                style="color: inherit; text-decoration: none;">Instagram</a></p>
-                        <p style="font-size: 12px; color: var(--text-muted);"><a href="#"
-                                style="color: inherit; text-decoration: none;">LinkedIn</a></p>
-                    </div>
-                </div>
-            </footer>
-
-    </main>
-    <!-- Add Field Visit Modal -->
+    <!-- ═══════════════════════════════════════════════════════
+         ADD FIELD VISIT MODAL
+    ═══════════════════════════════════════════════════════ -->
     <div id="studentModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content" style="max-width: 860px;">
             <div class="modal-header">
                 <h2>Add Field Visit Record</h2>
                 <button class="close-modal">&times;</button>
@@ -153,11 +251,11 @@
             <form id="studentForm">
                 <div id="internModalError" class="alert alert-error"></div>
 
+                <!-- Row 1: Organization + Date -->
                 <div class="form-group-row">
                     <div class="form-group">
                         <label class="form-label">Field Visited / Organization</label>
-                        <input type="text" id="mi-field_visited" class="form-input" placeholder="e.g. Police Station"
-                            required>
+                        <input type="text" id="mi-field_visited" class="form-input" placeholder="e.g. Police Station" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Visit Date</label>
@@ -165,22 +263,8 @@
                     </div>
                 </div>
 
+                <!-- Row 2: Type + City + Total Staff -->
                 <div class="form-group-row">
-                    <div class="form-group">
-                        <label class="form-label">No. of Students Visited</label>
-                        <input type="number" id="mi-no_of_students" class="form-input" placeholder="e.g. 30" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Program Name</label>
-                        <input type="text" id="mi-program_name" class="form-input" placeholder="e.g. BACPA" required>
-                    </div>
-                </div>
-
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label class="form-label">No. of Staff Visited</label>
-                        <input type="number" id="mi-no_of_staff" class="form-input" placeholder="e.g. 2" required>
-                    </div>
                     <div class="form-group">
                         <label class="form-label">Visit Type</label>
                         <select id="mi-visit_type" class="form-select">
@@ -192,15 +276,28 @@
                         <label class="form-label">City</label>
                         <input type="text" id="mi-city" class="form-input" placeholder="e.g. Puducherry" required>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Total Staff Count</label>
+                        <input type="number" id="mi-no_of_staff" class="form-input" placeholder="e.g. 3" required min="1">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Staff Names</label>
-                    <input type="text" id="mi-staff_name" class="form-input"
-                        placeholder="Mr. Nethaji Subash I / Ms. Suriya P" required>
+                <!-- Multi Dept Section -->
+                <div style="margin-top: 16px;">
+                    <div class="dept-section-label">
+                        <i class="bi bi-diagram-3-fill"></i>
+                        Department / Programme Entries
+                        <span style="font-size:10px;color:#8b949e;font-weight:400;text-transform:none;margin-left:4px;">(Add one row per programme attending this visit)</span>
+                    </div>
+                    <div class="dept-rows-container" id="mi-dept-rows">
+                        <!-- rows injected by JS -->
+                    </div>
+                    <button type="button" class="btn-add-dept" id="mi-add-dept-btn">
+                        <i class="bi bi-plus-circle"></i> Add Another Programme
+                    </button>
                 </div>
 
-                <div class="button-group">
+                <div class="button-group" style="margin-top: 20px;">
                     <button type="submit" id="saveStudentBtn" class="btn btn-primary">Save Field Visit</button>
                     <button type="button" class="btn btn-secondary close-modal">Cancel</button>
                 </div>
@@ -208,13 +305,14 @@
         </div>
     </div>
 
-    <!-- Edit Field Visit Modal -->
+    <!-- ═══════════════════════════════════════════════════════
+         EDIT FIELD VISIT MODAL
+    ═══════════════════════════════════════════════════════ -->
     <div id="editFieldVisitModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content" style="max-width: 860px;">
             <div class="modal-header">
                 <h2>Edit Field Visit Record</h2>
-                <button class="close-modal"
-                    onclick="document.getElementById('editFieldVisitModal').style.display='none'">&times;</button>
+                <button class="close-modal" onclick="document.getElementById('editFieldVisitModal').style.display='none'">&times;</button>
             </div>
             <form id="editFieldVisitForm">
                 <input type="hidden" id="ei-id">
@@ -233,21 +331,6 @@
 
                 <div class="form-group-row">
                     <div class="form-group">
-                        <label class="form-label">No. of Students</label>
-                        <input type="number" id="ei-no_of_students" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Program Name</label>
-                        <input type="text" id="ei-program_name" class="form-input" required>
-                    </div>
-                </div>
-
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label class="form-label">No. of Staff</label>
-                        <input type="number" id="ei-no_of_staff" class="form-input" required>
-                    </div>
-                    <div class="form-group">
                         <label class="form-label">Visit Type</label>
                         <select id="ei-visit_type" class="form-select">
                             <option value="Government">Government</option>
@@ -258,39 +341,48 @@
                         <label class="form-label">City</label>
                         <input type="text" id="ei-city" class="form-input" required>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Total Staff Count</label>
+                        <input type="number" id="ei-no_of_staff" class="form-input" required min="1">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Staff Name(s)</label>
-                    <input type="text" id="ei-staff_name" class="form-input" required>
+                <!-- Multi Dept Section (Edit) -->
+                <div style="margin-top: 16px;">
+                    <div class="dept-section-label">
+                        <i class="bi bi-diagram-3-fill"></i>
+                        Department / Programme Entries
+                        <span style="font-size:10px;color:#8b949e;font-weight:400;text-transform:none;margin-left:4px;">(Add one row per programme attending this visit)</span>
+                    </div>
+                    <div class="dept-rows-container" id="ei-dept-rows">
+                        <!-- rows injected by JS -->
+                    </div>
+                    <button type="button" class="btn-add-dept" id="ei-add-dept-btn">
+                        <i class="bi bi-plus-circle"></i> Add Another Programme
+                    </button>
                 </div>
 
-                <div class="button-group">
+                <div class="button-group" style="margin-top: 20px;">
                     <button type="submit" id="editFieldVisitSubmitBtn" class="btn btn-primary">Save Changes</button>
-                    <button type="button" class="btn btn-secondary"
-                        onclick="document.getElementById('editFieldVisitModal').style.display='none'">Cancel</button>
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('editFieldVisitModal').style.display='none'">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Import Field Visits Modal -->
+    <!-- Import Modal -->
     <div id="importFieldVisitModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Import Field Visits from Excel</h2>
-                <button class="close-modal"
-                    onclick="document.getElementById('importFieldVisitModal').style.display='none'">&times;</button>
+                <button class="close-modal" onclick="document.getElementById('importFieldVisitModal').style.display='none'">&times;</button>
             </div>
             <div style="padding: 20px;">
-                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 14px;">Upload an Excel file (.xlsx or .xls) with
-                    headers:<br>
-                    <strong>Field_Visited, Visited_Date, No_of_Student_Visited, Program_Name, No_of_Staff_Visited,
-                        Staff_Name, City</strong>
+                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 14px;">Upload an Excel file (.xlsx or .xls) with headers:<br>
+                    <strong>Field_Visited, Visited_Date, No_of_Student_Visited, Program_Name, No_of_Staff_Visited, Staff_Name, City</strong>
                 </p>
                 <form id="importFieldVisitForm">
-                    <div id="importInternError" style="color:#f87171;font-size:13px;margin-bottom:10px;display:none;">
-                    </div>
+                    <div id="importInternError" style="color:#f87171;font-size:13px;margin-bottom:10px;display:none;"></div>
                     <div class="form-group">
                         <input type="file" id="importInternFile" accept=".xlsx, .xls" required
                             style="border: 1px dashed #555; padding: 20px; width: 100%; border-radius: 8px; color: white;">
@@ -300,240 +392,346 @@
                     </div>
                 </form>
                 <div id="importInternStatus" style="margin-top: 15px; font-size: 14px; display: none;">
-                    <div class="spinner"
-                        style="display: inline-block; width: 15px; height: 15px; border: 2px solid #4ade80; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;">
-                    </div>
+                    <div class="spinner" style="display: inline-block; width: 15px; height: 15px; border: 2px solid #4ade80; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                     <span style="margin-left: 10px;">Processing file...</span>
                 </div>
             </div>
         </div>
     </div>
+
     <script src="auth-guard.js?v=3"></script>
     <!-- CDN: Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- CDN: SheetJS for Excel import/export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- Supabase config (change only this file when moving to a new host) -->
     <script src="supabase-client.js"></script>
     <script src="supabase-client.js?v=303"></script>
     <script src="api.js?v=400"></script>
     <script src="security.js?v=400"></script>
     <script>
-        (async () => {
-            const tbody = document.getElementById('tableBody');
-            let fieldVisitsData = [];
-            let currentPage = 1;
-            const pageSize = 20;
+    (async () => {
+        const tbody = document.getElementById('tableBody');
+        let fieldVisitsData = [];
+        let currentPage = 1;
+        const pageSize = 20;
 
-            async function load() {
-                try {
-                    fieldVisitsData = await getFieldVisits() || [];
-                    render(fieldVisitsData);
-                } catch (e) {
-                    if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="padding:24px;text-align:center;color:#f87171">${e.message}</td></tr>`;
+        // ── SEPARATOR used to store multiple dept entries as strings ──────────
+        const SEP = ' || ';   // between entries
+        const FSEP = ' | ';   // between fields within an entry   programme | students | staff_name
+
+        /* ─── Dept-Row helpers ─────────────────────────────────────────────── */
+        function makeDeptRow(programme = '', students = '', staffName = '') {
+            const div = document.createElement('div');
+            div.className = 'dept-entry-row';
+            div.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">Programme Name</label>
+                    <input type="text" class="form-input dept-programme" placeholder="e.g. BACPA" value="${programme}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">No. of Students</label>
+                    <input type="number" class="form-input dept-students" placeholder="e.g. 30" value="${students}" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Lead Staff Name(s)</label>
+                    <input type="text" class="form-input dept-staff" placeholder="e.g. Mr. Nethaji I" value="${staffName}" required>
+                </div>
+                <button type="button" class="btn-remove-dept" title="Remove this entry">
+                    <i class="bi bi-dash-lg"></i>
+                </button>`;
+            div.querySelector('.btn-remove-dept').addEventListener('click', () => {
+                const container = div.parentElement;
+                if (container.querySelectorAll('.dept-entry-row').length > 1) {
+                    div.remove();
                 }
+            });
+            return div;
+        }
+
+        function initDeptRows(containerId, entries = []) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            if (entries.length === 0) entries.push({ programme: '', students: '', staffName: '' });
+            entries.forEach(e => container.appendChild(makeDeptRow(e.programme, e.students, e.staffName)));
+        }
+
+        function bindAddBtn(btnId, containerId) {
+            document.getElementById(btnId).addEventListener('click', () => {
+                document.getElementById(containerId).appendChild(makeDeptRow());
+            });
+        }
+
+        /* Collect dept entries from a container */
+        function collectDeptEntries(containerId) {
+            const rows = document.getElementById(containerId).querySelectorAll('.dept-entry-row');
+            return Array.from(rows).map(row => ({
+                programme: row.querySelector('.dept-programme').value.trim(),
+                students:  row.querySelector('.dept-students').value.trim(),
+                staffName: row.querySelector('.dept-staff').value.trim()
+            })).filter(e => e.programme || e.students || e.staffName);
+        }
+
+        /* Encode dept entries into DB strings */
+        function encodeEntries(entries) {
+            const programmes = entries.map(e => e.programme).join(SEP);
+            const students   = entries.map(e => e.students || '0').join(SEP);
+            const staffNames = entries.map(e => e.staffName).join(SEP);
+            return { programmes, students, staffNames };
+        }
+
+        /* Decode DB strings back to entry array */
+        function decodeEntries(v) {
+            const progs  = (v.program_name || '').split(SEP).map(s => s.trim());
+            const studes = (v.no_of_student_visited || '').split(SEP).map(s => s.trim());
+            const staffs = (v.staff_name || '').split(SEP).map(s => s.trim());
+            const len = Math.max(progs.length, studes.length, staffs.length);
+            return Array.from({ length: len }, (_, i) => ({
+                programme: progs[i] || '',
+                students:  studes[i] || '',
+                staffName: staffs[i] || ''
+            }));
+        }
+
+        /* ─── Load / Render ─────────────────────────────────────────────────── */
+        async function load() {
+            try {
+                fieldVisitsData = await getFieldVisits() || [];
+                render(fieldVisitsData);
+            } catch (e) {
+                if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="padding:24px;text-align:center;color:#f87171">${e.message}</td></tr>`;
             }
+        }
 
-            function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-            function render(list) {
-                if (!tbody) return;
+        /* Render multi-value cell: each entry on its own chip line */
+        function multiCell(rawStr, color = '') {
+            const parts = (rawStr || '').split(SEP).map(s => s.trim()).filter(Boolean);
+            if (!parts.length) return '<span style="opacity:.4">—</span>';
+            return `<div class="multi-cell">${parts.map((p, i) =>
+                `<span class="multi-chip" style="${color ? 'color:' + color : ''}">${esc(p)}</span>${i < parts.length - 1 ? '<div class="multi-chip-sep"></div>' : ''}`
+            ).join('')}</div>`;
+        }
 
-                const totalItems = list.length;
-                const totalPages = Math.ceil(totalItems / pageSize);
-                if (currentPage > totalPages) currentPage = totalPages || 1;
-                if (currentPage < 1) currentPage = 1;
+        function render(list) {
+            if (!tbody) return;
+            const totalItems = list.length;
+            const totalPages = Math.ceil(totalItems / pageSize);
+            if (currentPage > totalPages) currentPage = totalPages || 1;
+            if (currentPage < 1) currentPage = 1;
 
-                const start = (currentPage - 1) * pageSize;
-                const end = start + pageSize;
-                const paginatedItems = list.slice(start, end);
+            const start = (currentPage - 1) * pageSize;
+            const end   = start + pageSize;
+            const page  = list.slice(start, end);
 
-                // Update pagination info
-                document.getElementById('totalItems').textContent = totalItems;
-                document.getElementById('startIndex').textContent = totalItems === 0 ? 0 : start + 1;
-                document.getElementById('endIndex').textContent = Math.min(end, totalItems);
-                document.getElementById('currentPageIndicator').textContent = `Page ${currentPage} / ${totalPages || 1}`;
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('startIndex').textContent = totalItems === 0 ? 0 : start + 1;
+            document.getElementById('endIndex').textContent   = Math.min(end, totalItems);
+            document.getElementById('currentPageIndicator').textContent = `Page ${currentPage} / ${totalPages || 1}`;
+            document.getElementById('prevPage').disabled = (currentPage === 1);
+            document.getElementById('nextPage').disabled = (currentPage === totalPages || totalPages === 0);
 
-                document.getElementById('prevPage').disabled = (currentPage === 1);
-                document.getElementById('nextPage').disabled = (currentPage === totalPages || totalPages === 0);
+            tbody.innerHTML = page.map((v, i) => `
+            <tr data-id="${v.id}">
+                <td style="text-align:center;">${start + i + 1}</td>
+                <td class="no-wrap" style="color:#a78bfa;font-weight:600;">${esc(v.field_visited || '—')}</td>
+                <td class="no-wrap">${esc(v.visited_date || '—')}</td>
+                <td>${multiCell(v.no_of_student_visited, '#60a5fa')}</td>
+                <td>${multiCell(v.program_name, '#94a3b8')}</td>
+                <td style="text-align:center;">${esc(v.no_of_staff_visited || '0')}</td>
+                <td style="font-weight:600;">${multiCell(v.staff_name, '#4ade80')}</td>
+                <td class="no-wrap"><span class="status-pill ${String(v.visit_type || '').toLowerCase() === 'private' ? 'not-placed' : 'placed'}" style="font-size:10px;padding:2px 8px;">${esc(v.visit_type || 'Government')}</span></td>
+                <td class="no-wrap">${esc(v.city || '—')}</td>
+                <td>
+                    <div style="display:flex;gap:6px;justify-content:center;align-items:center;">
+                        <button class="action-icon btn-edit" data-id="${v.id}" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                        <button class="action-icon btn-remove" data-id="${v.id}" title="Delete"><i class="bi bi-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`).join('');
 
-                tbody.innerHTML = paginatedItems.map((v, i) => `
-                <tr data-id="${v.id}">
-                    <td style="text-align:center;">${start + i + 1}</td>
-                    <td class="no-wrap" style="color:#a78bfa;font-weight:600;">${esc(v.field_visited || '—')}</td>
-                    <td class="no-wrap">${esc(v.visited_date || '—')}</td>
-                    <td>${esc(v.no_of_student_visited || '0')}</td>
-                    <td style="color:#94a3b8;">${esc(v.program_name || '—')}</td>
-                    <td>${esc(v.no_of_staff_visited || '0')}</td>
-                    <td style="font-weight:600; max-width: 200px;">${esc(v.staff_name || '—')}</td>
-                    <td class="no-wrap"><span class="status-pill ${String(v.visit_type || '').toLowerCase() === 'private' ? 'not-placed' : 'placed'}" style="font-size:10px; padding: 2px 8px;">${esc(v.visit_type || 'Government')}</span></td>
-                    <td class="no-wrap">${esc(v.city || '—')}</td>
-                    <td>
-                        <div style="display:flex;gap:6px;justify-content:center; align-items:center;">
-                            <button class="action-icon btn-edit" data-id="${v.id}" title="Edit"><i class="bi bi-pencil-square"></i></button>
-                            <button class="action-icon btn-remove" data-id="${v.id}" title="Delete"><i class="bi bi-trash"></i></button>
-                        </div>
-                    </td>
-                </tr>`).join('');
+            // Pagination
+            document.getElementById('prevPage').onclick = () => { if (currentPage > 1) { currentPage--; render(list); } };
+            document.getElementById('nextPage').onclick = () => { if (currentPage < totalPages) { currentPage++; render(list); } };
 
-                // Pagination listeners
-                document.getElementById('prevPage').onclick = () => { if (currentPage > 1) { currentPage--; render(list); } };
-                document.getElementById('nextPage').onclick = () => { if (currentPage < totalPages) { currentPage++; render(list); } };
-
-                tbody.querySelectorAll('.btn-del').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const target = e.target.closest('.btn-del');
-                        if (!confirm('Delete this visit?')) return;
-                        try { await deleteFieldVisit(target.dataset.id); load(); }
-                        catch (e) { alert('Delete failed: ' + e.message); }
-                    });
-                });
-
-                tbody.querySelectorAll('.btn-edit').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const target = e.target.closest('.btn-edit');
-                        const id = target.dataset.id;
-                        const v = fieldVisitsData.find(item => item.id == id);
-                        if (!v) return;
-                        document.getElementById('ei-id').value = v.id;
-                        document.getElementById('ei-field_visited').value = v.field_visited || '';
-                        document.getElementById('ei-visit_date').value = v.visited_date || '';
-                        document.getElementById('ei-no_of_students').value = v.no_of_student_visited || 0;
-                        document.getElementById('ei-program_name').value = v.program_name || '';
-                        document.getElementById('ei-no_of_staff').value = v.no_of_staff_visited || 0;
-                        document.getElementById('ei-staff_name').value = v.staff_name || '';
-                        document.getElementById('ei-visit_type').value = v.visit_type || 'Government';
-                        document.getElementById('ei-city').value = v.city || '';
-                        document.getElementById('editFieldVisitModal').style.display = 'flex';
-                    });
-                });
-            }
-
-            function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-
-            document.getElementById('fieldSearchUnified').addEventListener('input', e => {
-                const q = e.target.value.toLowerCase();
-                render(fieldVisitsData.filter(v =>
-                    (v.field_visited || '').toLowerCase().includes(q) ||
-                    (v.program_name || '').toLowerCase().includes(q) ||
-                    (v.staff_name || '').toLowerCase().includes(q) ||
-                    (v.city || '').toLowerCase().includes(q)
-                ));
-            });
-
-            document.addEventListener('DOMContentLoaded', load);
-
-            // Modal triggers
-            document.getElementById('addStudentBtn').addEventListener('click', () => {
-                const modal = document.getElementById('studentModal');
-                if (modal) modal.style.display = 'flex';
-            });
-
-            document.querySelectorAll('.close-modal').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const modal = document.getElementById('studentModal');
-                    if (modal) modal.style.display = 'none';
+            // Delete
+            tbody.querySelectorAll('.btn-remove').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const target = e.target.closest('.btn-remove');
+                    if (!confirm('Delete this visit?')) return;
+                    try { await deleteFieldVisit(target.dataset.id); load(); }
+                    catch (err) { alert('Delete failed: ' + err.message); }
                 });
             });
 
-            // Save btn
-            document.getElementById('studentForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const errEl = document.getElementById('internModalError');
-                const btn = document.getElementById('saveStudentBtn');
-                if (errEl) errEl.style.display = 'none';
-                btn.disabled = true; btn.textContent = 'Saving…';
+            // Edit — open modal & decode multi-values
+            tbody.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const target = e.target.closest('.btn-edit');
+                    const v = fieldVisitsData.find(item => item.id == target.dataset.id);
+                    if (!v) return;
 
-                try {
-                    await createFieldVisit({
-                        field_visited: document.getElementById('mi-field_visited').value,
-                        visit_type: document.getElementById('mi-visit_type').value,
-                        visited_date: document.getElementById('mi-visit_date').value,
-                        no_of_student_visited: parseInt(document.getElementById('mi-no_of_students').value),
-                        program_name: document.getElementById('mi-program_name').value,
-                        no_of_staff_visited: parseInt(document.getElementById('mi-no_of_staff').value),
-                        staff_name: document.getElementById('mi-staff_name').value,
-                        city: document.getElementById('mi-city').value
-                    });
-                    const modal = document.getElementById('studentModal');
-                    if (modal) modal.style.display = 'none';
-                    document.getElementById('studentForm').reset();
-                    load();
-                } catch (err) {
-                    if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
-                } finally {
-                    btn.disabled = false; btn.textContent = 'Save Field Visit';
-                }
+                    document.getElementById('ei-id').value           = v.id;
+                    document.getElementById('ei-field_visited').value = v.field_visited || '';
+                    document.getElementById('ei-visit_date').value    = v.visited_date || '';
+                    document.getElementById('ei-no_of_staff').value   = v.no_of_staff_visited || '';
+                    document.getElementById('ei-visit_type').value    = v.visit_type || 'Government';
+                    document.getElementById('ei-city').value          = v.city || '';
+
+                    // Populate dept rows
+                    const entries = decodeEntries(v);
+                    initDeptRows('ei-dept-rows', entries);
+
+                    document.getElementById('editFieldVisitModal').style.display = 'flex';
+                });
             });
+        }
 
-            // Edit submit
-            document.getElementById('editFieldVisitForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const id = document.getElementById('ei-id').value;
-                const errEl = document.getElementById('editInternModalError');
-                const btn = document.getElementById('editFieldVisitSubmitBtn');
-                if (errEl) errEl.style.display = 'none';
-                btn.disabled = true; btn.textContent = 'Saving…';
+        /* ─── Search ─────────────────────────────────────────────────────────── */
+        document.getElementById('fieldSearchUnified').addEventListener('input', e => {
+            const q = e.target.value.toLowerCase();
+            currentPage = 1;
+            render(fieldVisitsData.filter(v =>
+                (v.field_visited || '').toLowerCase().includes(q) ||
+                (v.program_name || '').toLowerCase().includes(q) ||
+                (v.staff_name || '').toLowerCase().includes(q) ||
+                (v.city || '').toLowerCase().includes(q)
+            ));
+        });
 
-                try {
-                    await updateFieldVisit(id, {
-                        field_visited: document.getElementById('ei-field_visited').value,
-                        visit_type: document.getElementById('ei-visit_type').value,
-                        visited_date: document.getElementById('ei-visit_date').value,
-                        no_of_student_visited: parseInt(document.getElementById('ei-no_of_students').value),
-                        program_name: document.getElementById('ei-program_name').value,
-                        no_of_staff_visited: parseInt(document.getElementById('ei-no_of_staff').value),
-                        staff_name: document.getElementById('ei-staff_name').value,
-                        city: document.getElementById('ei-city').value
-                    });
-                    document.getElementById('editFieldVisitModal').style.display = 'none';
-                    load();
-                } catch (err) {
-                    if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
-                } finally {
-                    btn.disabled = false; btn.textContent = 'Save Changes';
-                }
+        /* ─── Modal: Add ─────────────────────────────────────────────────────── */
+        document.getElementById('addStudentBtn').addEventListener('click', () => {
+            initDeptRows('mi-dept-rows');
+            document.getElementById('studentModal').style.display = 'flex';
+        });
+
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('studentModal').style.display = 'none';
             });
+        });
 
-            // Import Handling
-            document.getElementById('importFieldVisitForm').addEventListener('submit', async e => {
-                e.preventDefault();
-                const fileInput = document.getElementById('importInternFile');
-                const errEl = document.getElementById('importInternError');
-                const statusEl = document.getElementById('importInternStatus');
-                const btn = document.getElementById('importInternSubmitBtn');
+        bindAddBtn('mi-add-dept-btn', 'mi-dept-rows');
+        bindAddBtn('ei-add-dept-btn', 'ei-dept-rows');
 
-                if (!fileInput.files.length) return;
+        /* ─── Save: Add ──────────────────────────────────────────────────────── */
+        document.getElementById('studentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errEl = document.getElementById('internModalError');
+            const btn   = document.getElementById('saveStudentBtn');
+            if (errEl) errEl.style.display = 'none';
+            btn.disabled = true; btn.textContent = 'Saving…';
 
-                errEl.style.display = 'none';
-                statusEl.style.display = 'block';
-                btn.disabled = true;
-
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-
-                try {
-                    const res = await importFieldVisits(formData);
-                    alert(res.message || 'Import successful!');
-                    document.getElementById('importFieldVisitModal').style.display = 'none';
-                    fileInput.value = '';
-                    load();
-                } catch (err) {
-                    errEl.textContent = err.message;
+            try {
+                const entries = collectDeptEntries('mi-dept-rows');
+                if (!entries.length) {
+                    errEl.textContent = 'Please add at least one programme entry.';
                     errEl.style.display = 'block';
-                } finally {
-                    statusEl.style.display = 'none';
-                    btn.disabled = false;
+                    return;
                 }
-            });
-            document.addEventListener('DOMContentLoaded', () => {
-                load();
-                subscribeAllChanges(() => {
-                    console.log('[Realtime] Refreshing field visits list...');
-                    load();
+                const { programmes, students, staffNames } = encodeEntries(entries);
+
+                await createFieldVisit({
+                    field_visited:        document.getElementById('mi-field_visited').value.trim(),
+                    visit_type:           document.getElementById('mi-visit_type').value,
+                    visited_date:         document.getElementById('mi-visit_date').value.trim(),
+                    no_of_student_visited: students,
+                    program_name:          programmes,
+                    no_of_staff_visited:   parseInt(document.getElementById('mi-no_of_staff').value) || 0,
+                    staff_name:            staffNames,
+                    city:                  document.getElementById('mi-city').value.trim()
                 });
+
+                document.getElementById('studentModal').style.display = 'none';
+                document.getElementById('studentForm').reset();
+                load();
+            } catch (err) {
+                if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
+            } finally {
+                btn.disabled = false; btn.textContent = 'Save Field Visit';
+            }
+        });
+
+        /* ─── Save: Edit ─────────────────────────────────────────────────────── */
+        document.getElementById('editFieldVisitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id    = document.getElementById('ei-id').value;
+            const errEl = document.getElementById('editInternModalError');
+            const btn   = document.getElementById('editFieldVisitSubmitBtn');
+            if (errEl) errEl.style.display = 'none';
+            btn.disabled = true; btn.textContent = 'Saving…';
+
+            try {
+                const entries = collectDeptEntries('ei-dept-rows');
+                if (!entries.length) {
+                    errEl.textContent = 'Please add at least one programme entry.';
+                    errEl.style.display = 'block';
+                    return;
+                }
+                const { programmes, students, staffNames } = encodeEntries(entries);
+
+                await updateFieldVisit(id, {
+                    field_visited:        document.getElementById('ei-field_visited').value.trim(),
+                    visit_type:           document.getElementById('ei-visit_type').value,
+                    visited_date:         document.getElementById('ei-visit_date').value.trim(),
+                    no_of_student_visited: students,
+                    program_name:          programmes,
+                    no_of_staff_visited:   parseInt(document.getElementById('ei-no_of_staff').value) || 0,
+                    staff_name:            staffNames,
+                    city:                  document.getElementById('ei-city').value.trim()
+                });
+
+                document.getElementById('editFieldVisitModal').style.display = 'none';
+                load();
+            } catch (err) {
+                if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
+            } finally {
+                btn.disabled = false; btn.textContent = 'Save Changes';
+            }
+        });
+
+        /* ─── Import ─────────────────────────────────────────────────────────── */
+        document.getElementById('importFieldVisitForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const fileInput = document.getElementById('importInternFile');
+            const errEl     = document.getElementById('importInternError');
+            const statusEl  = document.getElementById('importInternStatus');
+            const btn       = document.getElementById('importInternSubmitBtn');
+            if (!fileInput.files.length) return;
+
+            errEl.style.display = 'none';
+            statusEl.style.display = 'block';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            try {
+                const res = await importFieldVisits(formData);
+                alert(res.message || 'Import successful!');
+                document.getElementById('importFieldVisitModal').style.display = 'none';
+                fileInput.value = '';
+                load();
+            } catch (err) {
+                errEl.textContent = err.message;
+                errEl.style.display = 'block';
+            } finally {
+                statusEl.style.display = 'none';
+                btn.disabled = false;
+            }
+        });
+
+        /* ─── Bootstrap ──────────────────────────────────────────────────────── */
+        document.addEventListener('DOMContentLoaded', () => {
+            load();
+            subscribeAllChanges(() => {
+                console.log('[Realtime] Refreshing field visits list...');
+                load();
             });
-        })();
+        });
+
+        // Kick off immediately too (for when DOMContentLoaded already fired)
+        load();
+    })();
     </script>
 </body>
 

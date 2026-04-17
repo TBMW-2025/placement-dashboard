@@ -1,0 +1,12 @@
+{
+  "name": "placement-dashboard-rru",
+  "version": "1.0.0",
+  "description": "Rashtriya Raksha University Placement Dashboard",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
