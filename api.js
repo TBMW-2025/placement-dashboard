@@ -423,7 +423,7 @@ async function importFieldVisits(fileOrFormData) {
     const file = fileOrFormData instanceof File ? fileOrFormData
         : (fileOrFormData instanceof FormData ? fileOrFormData.get('file') : null);
     if (!file) throw new Error('No file provided.');
-    const rows = await parseExcelFile(file, 'field_visited');
+    const rows = await parseExcelFile(file, 'field_visits');
     if (!rows.length) throw new Error('No valid rows found in file.');
 
     // For Field Visits, we insert all new rows (no specific student conflict)
@@ -463,7 +463,7 @@ async function importIndustrialVisits(fileOrFormData) {
     const file = fileOrFormData instanceof File ? fileOrFormData
         : (fileOrFormData instanceof FormData ? fileOrFormData.get('file') : null);
     if (!file) throw new Error('No file provided.');
-    const rows = await parseExcelFile(file, 'industrial_visited');
+    const rows = await parseExcelFile(file, 'industrial_visits');
     if (!rows.length) throw new Error('No valid rows found in file.');
     const { data, error } = await _sb.from('industrial_visits').insert(rows).select();
     sbCheck(error, 'importIndustrialVisits');
@@ -853,7 +853,7 @@ async function parseExcelFile(file, type) {
                             city: col(nr, 'City', 'Location', 'Place', 'city')
                         };
                     }).filter(r => r.field_visited && r.visited_date);
-                } else if (type === 'industrial_visited') {
+                } else if (type === 'industrial_visits') {
                     rows = raw.map(r => {
                         const nr = normalizeRow(r);
                         return {

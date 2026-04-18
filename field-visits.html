@@ -506,7 +506,8 @@
 
         /* Render multi-value cell: each entry on its own chip line */
         function multiCell(rawStr, color = '') {
-            const parts = (rawStr || '').split(SEP).map(s => s.trim()).filter(Boolean);
+            // Split by either ' || ' or '\n'
+            const parts = (rawStr || '').split(/ \|\| |\n/).map(s => s.trim()).filter(Boolean);
             if (!parts.length) return '<span style="opacity:.4">—</span>';
             return `<div class="multi-cell">${parts.map((p, i) =>
                 `<span class="multi-chip" style="${color ? 'color:' + color : ''}">${esc(p)}</span>${i < parts.length - 1 ? '<div class="multi-chip-sep"></div>' : ''}`
