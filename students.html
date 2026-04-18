@@ -376,8 +376,6 @@
         async function loadStudents() {
             try {
                 let allStudents = await getStudents() || [];
-                // Sort by enrollment number ascending (default display)
-                allStudents.sort((a, b) => (String(a.enrollment_number || "")).localeCompare(String(b.enrollment_number || "")));
                 studentsData = allStudents;
                 document.getElementById('studentCount').textContent = studentsData.length;
                 renderStudents(studentsData);

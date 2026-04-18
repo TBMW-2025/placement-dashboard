@@ -196,14 +196,14 @@ async function importCompanies(fileOrFormData) {
 // ─── PLACEMENTS ───────────────────────────────────────────────────────────────
 async function getPlacements(prog = '') {
     try {
-        let query = _sb.from('placements').select('*');
+        let query = _sb.from('placements').select('*').order('id');
         if (prog) query = query.ilike('programme', `%${prog.trim()}%`);
         const { data, error } = await query;
         if (error) throw error;
         return data || [];
     } catch (e) {
         console.warn('[api] getPlacements filtered failed, fallback:', e);
-        const { data, error } = await _sb.from('placements').select('*');
+        const { data, error } = await _sb.from('placements').select('*').order('id');
         if (error) { sbCheck(error, 'getPlacements'); return []; }
         if (!prog) return data || [];
         return (data || []).filter(p => (p.programme || '').toLowerCase().includes(prog.toLowerCase()));
@@ -343,14 +343,14 @@ async function importPlacements(fileOrFormData) {
 // ─── INTERNSHIPS ──────────────────────────────────────────────────────────────
 async function getInternships(prog = '') {
     try {
-        let query = _sb.from('internships').select('*');
+        let query = _sb.from('internships').select('*').order('id');
         if (prog) query = query.ilike('programme', `%${prog.trim()}%`);
         const { data, error } = await query;
         if (error) throw error;
         return data || [];
     } catch (e) {
         console.warn('[api] getInternships filtered failed, falling back to all then filter:', e);
-        const { data, error } = await _sb.from('internships').select('*');
+        const { data, error } = await _sb.from('internships').select('*').order('id');
         if (error) { sbCheck(error, 'getInternships'); return []; }
         if (!prog) return data || [];
         return (data || []).filter(i => (i.programme || i.course || '').toLowerCase().includes(prog.toLowerCase()));
@@ -394,7 +394,7 @@ async function importInternships(fileOrFormData) {
 }
 // ─── FIELD VISITS ─────────────────────────────────────────────────────────────
 async function getFieldVisits(program = '') {
-    let query = _sb.from('field_visits').select('*');
+    let query = _sb.from('field_visits').select('*').order('id');
     if (program) query = query.ilike('program_name', `%${program.trim()}%`);
     const { data, error } = await query;
     sbCheck(error, 'getFieldVisits');
@@ -434,7 +434,7 @@ async function importFieldVisits(fileOrFormData) {
 
 // ─── INDUSTRIAL VISITS ────────────────────────────────────────────────────────
 async function getIndustrialVisits(program = '') {
-    let query = _sb.from('industrial_visits').select('*');
+    let query = _sb.from('industrial_visits').select('*').order('id');
     if (program) query = query.ilike('program_name', `%${program.trim()}%`);
     const { data, error } = await query;
     sbCheck(error, 'getIndustrialVisits');
