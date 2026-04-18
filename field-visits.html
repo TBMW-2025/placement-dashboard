@@ -420,21 +420,17 @@
         const FSEP = ' | ';   // between fields within an entry   programme | students | staff_name
 
         /* ─── Dept-Row helpers ─────────────────────────────────────────────── */
-        function makeDeptRow(programme = '', students = '', staffName = '') {
+        function makeDeptRow(programme = '', students = '') {
             const div = document.createElement('div');
             div.className = 'dept-entry-row';
             div.innerHTML = `
-                <div class="form-group">
+                <div class="form-group" style="flex: 2;">
                     <label class="form-label">Programme Name</label>
                     <input type="text" class="form-input dept-programme" placeholder="e.g. BACPA" value="${programme}" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="flex: 1;">
                     <label class="form-label">No. of Students</label>
                     <input type="number" class="form-input dept-students" placeholder="e.g. 30" value="${students}" required min="0">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Lead Staff Name(s)</label>
-                    <input type="text" class="form-input dept-staff" placeholder="e.g. Mr. Nethaji I" value="${staffName}" required>
                 </div>
                 <button type="button" class="btn-remove-dept" title="Remove this entry">
                     <i class="bi bi-dash-lg"></i>
@@ -448,48 +444,86 @@
             return div;
         }
 
-        function initDeptRows(containerId, entries = []) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            if (entries.length === 0) entries.push({ programme: '', students: '', staffName: '' });
-            entries.forEach(e => container.appendChild(makeDeptRow(e.programme, e.students, e.staffName)));
+        function makeStaffRow(staffName = '') {
+            const div = document.createElement('div');
+            div.className = 'staff-entry-row';
+            div.style.cssText = "display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);";
+            div.innerHTML = `
+                <input type="text" class="form-input staff-name" placeholder="Staff Name" value="${staffName}" required 
+                    style="background: transparent; border: none; padding: 4px; font-size: 13px;">
+                <button type="button" class="btn-remove-staff" style="background:none; border:none; color:#f87171; cursor:pointer; padding: 2px;">
+                    <i class="bi bi-x-lg"></i>
+                </button>`;
+            div.querySelector('.btn-remove-staff').addEventListener('click', () => {
+                const container = div.parentElement;
+                if (container.querySelectorAll('.staff-entry-row').length > 1) {
+                    div.remove();
+                }
+            });
+            return div;
         }
 
-        function bindAddBtn(btnId, containerId) {
+        function initRows(containerId, staffContainerId, entries = [], staffList = []) {
+            const container = document.getElementById(containerId);
+            const staffContainer = document.getElementById(staffContainerId);
+            container.innerHTML = '';
+            staffContainer.innerHTML = '';
+
+            if (entries.length === 0) entries.push({ programme: '', students: '' });
+            entries.forEach(e => container.appendChild(makeDeptRow(e.programme, e.students)));
+
+            if (staffList.length === 0) staffList.push('');
+            staffList.forEach(s => staffContainer.appendChild(makeStaffRow(s)));
+        }
+
+        function bindAddBtn(btnId, containerId, rowType) {
             document.getElementById(btnId).addEventListener('click', () => {
-                document.getElementById(containerId).appendChild(makeDeptRow());
+                const row = rowType === 'staff' ? makeStaffRow() : makeDeptRow();
+                document.getElementById(containerId).appendChild(row);
             });
         }
 
-        /* Collect dept entries from a container */
-        function collectDeptEntries(containerId) {
-            const rows = document.getElementById(containerId).querySelectorAll('.dept-entry-row');
-            return Array.from(rows).map(row => ({
+        /* Collect entries from containers */
+        function collectEntries(deptContainerId, staffContainerId) {
+            const deptRows = document.getElementById(deptContainerId).querySelectorAll('.dept-entry-row');
+            const progs = Array.from(deptRows).map(row => ({
                 programme: row.querySelector('.dept-programme').value.trim(),
-                students:  row.querySelector('.dept-students').value.trim(),
-                staffName: row.querySelector('.dept-staff').value.trim()
-            })).filter(e => e.programme || e.students || e.staffName);
+                students:  row.querySelector('.dept-students').value.trim()
+            })).filter(e => e.programme || e.students);
+
+            const staffRows = document.getElementById(staffContainerId).querySelectorAll('.staff-entry-row');
+            const staffs = Array.from(staffRows).map(row => row.querySelector('.staff-name').value.trim()).filter(Boolean);
+
+            return { progs, staffs };
         }
 
-        /* Encode dept entries into DB strings */
-        function encodeEntries(entries) {
-            const programmes = entries.map(e => e.programme).join(SEP);
-            const students   = entries.map(e => e.students || '0').join(SEP);
-            const staffNames = entries.map(e => e.staffName).join(SEP);
+        /* Encode entries into DB strings */
+        function encodeEntries(data) {
+            const programmes = data.progs.map(e => e.programme).join(SEP);
+            const students   = data.progs.map(e => e.students || '0').join(SEP);
+            const staffNames = data.staffs.join(SEP);
             return { programmes, students, staffNames };
         }
 
-        /* Decode DB strings back to entry array */
+        /* Decode DB strings back to data object */
         function decodeEntries(v) {
-            const progs  = (v.program_name || '').split(SEP).map(s => s.trim());
-            const studes = (v.no_of_student_visited || '').split(SEP).map(s => s.trim());
-            const staffs = (v.staff_name || '').split(SEP).map(s => s.trim());
-            const len = Math.max(progs.length, studes.length, staffs.length);
-            return Array.from({ length: len }, (_, i) => ({
-                programme: progs[i] || '',
-                students:  studes[i] || '',
-                staffName: staffs[i] || ''
+            const progsStr  = v.program_name || '';
+            const studesStr = v.no_of_student_visited || '';
+            const staffsStr = v.staff_name || '';
+
+            // Handle legacy or mixed formats
+            const pArr = progsStr.includes(SEP) ? progsStr.split(SEP) : [progsStr];
+            const sArr = studesStr.includes(SEP) ? studesStr.split(SEP) : [studesStr];
+            const stArr = staffsStr.includes(SEP) ? staffsStr.split(SEP) : (staffsStr.includes('\n') ? staffsStr.split('\n') : [staffsStr]);
+
+            const entries = Array.from({ length: Math.max(pArr.length, sArr.length) }, (_, i) => ({
+                programme: pArr[i]?.trim() || '',
+                students:  sArr[i]?.trim() || ''
             }));
+
+            const staffList = stArr.map(s => s.trim()).filter(Boolean);
+
+            return { entries, staffList };
         }
 
         /* ─── Load / Render ─────────────────────────────────────────────────── */
@@ -579,9 +613,9 @@
                     document.getElementById('ei-visit_type').value    = v.visit_type || 'Government';
                     document.getElementById('ei-city').value          = v.city || '';
 
-                    // Populate dept rows
-                    const entries = decodeEntries(v);
-                    initDeptRows('ei-dept-rows', entries);
+                    // Populate rows
+                    const data = decodeEntries(v);
+                    initRows('ei-dept-rows', 'ei-staff-rows', data.entries, data.staffList);
 
                     document.getElementById('editFieldVisitModal').style.display = 'flex';
                 });
@@ -602,7 +636,7 @@
 
         /* ─── Modal: Add ─────────────────────────────────────────────────────── */
         document.getElementById('addStudentBtn').addEventListener('click', () => {
-            initDeptRows('mi-dept-rows');
+            initRows('mi-dept-rows', 'mi-staff-rows');
             document.getElementById('studentModal').style.display = 'flex';
         });
 
@@ -612,8 +646,10 @@
             });
         });
 
-        bindAddBtn('mi-add-dept-btn', 'mi-dept-rows');
-        bindAddBtn('ei-add-dept-btn', 'ei-dept-rows');
+        bindAddBtn('mi-add-dept-btn', 'mi-dept-rows', 'dept');
+        bindAddBtn('mi-add-staff-btn', 'mi-staff-rows', 'staff');
+        bindAddBtn('ei-add-dept-btn', 'ei-dept-rows', 'dept');
+        bindAddBtn('ei-add-staff-btn', 'ei-staff-rows', 'staff');
 
         /* ─── Save: Add ──────────────────────────────────────────────────────── */
         document.getElementById('studentForm').addEventListener('submit', async (e) => {
@@ -624,13 +660,13 @@
             btn.disabled = true; btn.textContent = 'Saving…';
 
             try {
-                const entries = collectDeptEntries('mi-dept-rows');
-                if (!entries.length) {
+                const data = collectEntries('mi-dept-rows', 'mi-staff-rows');
+                if (!data.progs.length) {
                     errEl.textContent = 'Please add at least one programme entry.';
                     errEl.style.display = 'block';
                     return;
                 }
-                const { programmes, students, staffNames } = encodeEntries(entries);
+                const { programmes, students, staffNames } = encodeEntries(data);
 
                 await createFieldVisit({
                     field_visited:        document.getElementById('mi-field_visited').value.trim(),
@@ -663,13 +699,13 @@
             btn.disabled = true; btn.textContent = 'Saving…';
 
             try {
-                const entries = collectDeptEntries('ei-dept-rows');
-                if (!entries.length) {
+                const data = collectEntries('ei-dept-rows', 'ei-staff-rows');
+                if (!data.progs.length) {
                     errEl.textContent = 'Please add at least one programme entry.';
                     errEl.style.display = 'block';
                     return;
                 }
-                const { programmes, students, staffNames } = encodeEntries(entries);
+                const { programmes, students, staffNames } = encodeEntries(data);
 
                 await updateFieldVisit(id, {
                     field_visited:        document.getElementById('ei-field_visited').value.trim(),

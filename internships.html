@@ -189,8 +189,8 @@
                 </div>
                 <div class="form-group-row">
                     <div class="form-group">
-                        <label class="form-label">Programme</label>
-                        <input type="text" id="mi-programme" class="form-input" required>
+                        <label class="form-label">Programme (Repeat)</label>
+                        <input type="text" id="mi-programme-2" class="form-input" placeholder="Programme" disabled style="opacity:0.5;">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Batch</label>
@@ -407,6 +407,13 @@
                         <td style="font-weight:600;">${esc(item.student_name || item.name_of_student)}</td>
                         <td>${esc(item.gender)}</td>
                         <td>${esc(item.internship_place || item.internship_place_01)}</td>
+                        <td class="no-wrap" style="font-family:monospace; color:#a78bfa; white-space:nowrap;">${esc(item.enrollment_number || '-')}</td>
+                        <td>${esc(item.year)}</td>
+                        <td>${esc(item.batch || '-')}</td>
+                        <td>${esc(item.programme)}</td>
+                        <td style="font-weight:600;">${esc(item.student_name || item.name_of_student)}</td>
+                        <td>${esc(item.gender)}</td>
+                        <td>${esc(item.internship_place || item.internship_place_01)}</td>
                         <td>${esc(item.duration_of_intership || item.duration_of_intership_01)}</td>
                         <td>${esc(item.city_of_intership || item.city_of_intership_01)}</td>
                         <td>${esc(item.type_of_organization)}</td>
@@ -493,16 +500,13 @@
                         year: document.getElementById('mi-year').value,
                         enrollment_number: document.getElementById('mi-enrolment').value,
                         programme: document.getElementById('mi-programme').value,
+                        batch: document.getElementById('mi-batch').value,
                         student_name: document.getElementById('mi-name').value,
                         gender: document.getElementById('mi-gender').value,
                         role: document.getElementById('mi-role').value || '',
-                        salary: document.getElementById('mi-salary').value || '',
-                        internship_place_01: document.getElementById('mi-place').value,
-                        duration_of_intership_01: document.getElementById('mi-duration').value || '',
-                        city_of_intership_01: document.getElementById('mi-city').value || '',
-                        internship_place_02: document.getElementById('mi-place-02').value || '',
-                        duration_of_intership_02: document.getElementById('mi-duration-02').value || '',
-                        city_of_intership_02: document.getElementById('mi-city-02').value || '',
+                        internship_place: document.getElementById('mi-place').value,
+                        duration_of_intership: document.getElementById('mi-duration').value || '',
+                        city_of_intership: document.getElementById('mi-city').value || '',
                         type_of_organization: document.getElementById('mi-org-type').value || ''
                     });
                     const modal = document.getElementById('studentModal');
@@ -530,16 +534,12 @@
                         year: document.getElementById('ei-year').value,
                         enrollment_number: document.getElementById('ei-enrolment').value,
                         programme: document.getElementById('ei-programme').value,
+                        batch: document.getElementById('ei-batch').value,
                         student_name: document.getElementById('ei-name').value,
                         gender: document.getElementById('ei-gender').value,
-                        role: document.getElementById('ei-role').value || '',
-                        salary: document.getElementById('ei-salary').value || '',
-                        internship_place_01: document.getElementById('ei-place').value,
-                        duration_of_intership_01: document.getElementById('ei-duration').value || '',
-                        city_of_intership_01: document.getElementById('ei-city').value || '',
-                        internship_place_02: document.getElementById('ei-place-02').value || '',
-                        duration_of_intership_02: document.getElementById('ei-duration-02').value || '',
-                        city_of_intership_02: document.getElementById('ei-city-02').value || '',
+                        internship_place: document.getElementById('ei-place').value,
+                        duration_of_intership: document.getElementById('ei-duration').value || '',
+                        city_of_intership: document.getElementById('ei-city').value || '',
                         type_of_organization: document.getElementById('ei-org-type').value || ''
                     });
                     document.getElementById('editInternshipModal').style.display = 'none';

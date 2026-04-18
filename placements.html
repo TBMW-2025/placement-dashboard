@@ -297,7 +297,7 @@
 
             tbody.innerHTML = paginatedItems.map((p, i) => {
                 return `
-                    <tr data-id="${p.enrollment_number || p.id}">
+                    <tr data-id="${p.id}">
                         <td style="text-align:center;">${escHtml(p.id || start + i + 1)}</td>
                         <td style="font-weight:600;">${escHtml(p.name || p.student_name || '—')}</td>
                         <td class="no-wrap" style="font-family:monospace; white-space:nowrap;">${escHtml(p.enrollment_number || '—')}</td>
@@ -309,8 +309,8 @@
                         <td style="color:#22c55e;">${escHtml(p.salary || p.ctc || p.package || '—')}</td>
                         <td>
                             <div style="display:flex;gap:8px;justify-content:center;">
-                                <button class="action-icon btn-edit-placement" data-id="${p.enrollment_number || p.id}" title="Edit"><i class="bi bi-pencil-square"></i></button>
-                                <button class="action-icon btn-del-placement" data-id="${p.enrollment_number || p.id}" title="Delete"><i class="bi bi-trash"></i></button>
+                                <button class="action-icon btn-edit-placement" data-id="${p.id}" title="Edit"><i class="bi bi-pencil-square"></i></button>
+                                <button class="action-icon btn-del-placement" data-id="${p.id}" title="Delete"><i class="bi bi-trash"></i></button>
                             </div>
                         </td>
                     </tr>`;
@@ -400,7 +400,7 @@
             const btn = e.target.closest('.btn-edit-placement');
             if (btn) {
                 const id = btn.dataset.id;
-                const p = placementsData.find(item => (item.enrollment_number == id || item.id == id));
+                const p = placementsData.find(item => item.id == id);
                 if (!p) return;
                 document.getElementById('ep-id').value = p.id || '';
                 document.getElementById('ep-enrollment').value = p.enrollment_number || '';
